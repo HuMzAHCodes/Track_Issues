@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Issue {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(255)
+  description String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  // Automatically updates whenever the record is modified
+
+  status Status @default(OPEN)
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  CLOSED
+}
+
+// =======================
+// 📌 Model (Concept)
+// =======================
+// A model represents a TABLE in the database.
+// It defines the structure of data (fields → columns).
+// Each record in the table corresponds to one object of the model.
+// Used to organize, store, and interact with data via Prisma Client.
+
+// =======================
+// 📌 Enum (Concept)
+// =======================
+// An enum defines a fixed set of allowed values for a field.
+// It restricts data to predefined options (e.g., OPEN, CLOSED).
+// Helps maintain data consistency and prevents invalid entries.
