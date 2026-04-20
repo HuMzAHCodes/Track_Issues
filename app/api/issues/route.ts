@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import {z} from "zod";
 import prisma from"@/prisma/client"
+import { createissueschema } from "../../validationschemas";
 
 
- const createissueschema=z.object({
-    title:z.string().min(1,"Title is Required").max(255),
-    description:z.string().min(1,"Description is Required")
-})
-
-// we have schema to validate the bosy of request
+// we have schema to validate the body of request
 
 
 
