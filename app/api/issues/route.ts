@@ -4,8 +4,8 @@ import prisma from"@/prisma/client"
 
 
  const createissueschema=z.object({
-    title:z.string().min(1).max(255),
-    description:z.string().min(1)
+    title:z.string().min(1,"Title is Required").max(255),
+    description:z.string().min(1,"Description is Required")
 })
 
 // we have schema to validate the bosy of request
@@ -18,7 +18,7 @@ export  async function PUT (request:NextRequest){
     const validation=createissueschema.safeParse(body)
 
     if(!validation.success){
-        return NextResponse.json(validation.error.errors,{status:400})
+        return NextResponse.json(validation.error.format(),{status:400})
     }
 
     // now if a valid issue , store this in DATABASE via PRISMA CLIENT
