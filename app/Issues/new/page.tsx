@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createissueschema } from '@/app/validationschemas';
 import { z } from "zod";
+import ErrorMessage from '@/app/components/ErrorMessage';
 
 
 
@@ -90,20 +91,14 @@ const page = () => {
         />
 
         {/* Show title validation error if it exists */}
-        {errors.title && (
-          <Text color="red" as="p">{errors.title.message}</Text>
-        )}
-
-
-
-
-
-
-
-
-
-
+        {<ErrorMessage>
+            <Text >{errors.title?.message}</Text>
+        </ErrorMessage>
         
+        }
+
+
+
 
         {/* Controller wraps SimpleMDE since it's a custom component, not a native input */}
         <Controller
@@ -115,9 +110,12 @@ const page = () => {
         />
 
         {/* Show description validation error if it exists */}
-        {errors.description && (
-          <Text color="red" as="p">{errors.description.message}</Text>
-        )}
+        {<ErrorMessage>
+           <Text >{errors.description?.message}</Text>
+          
+        </ErrorMessage>
+         
+        }
 
         <Button>Submit New Issue</Button>
 
