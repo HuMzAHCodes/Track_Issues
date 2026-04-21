@@ -46,6 +46,22 @@ const page = () => {
   const [error, seterror] = useState("");
 
 
+  const onsubmit=handleSubmit(async (data) => {
+          try {
+            // Send form data to our API route via PUT request
+            await axios.put('/api/issues', data)
+
+            // After successful submission, redirect user to the Issues list page
+            router.push('/Issues')
+
+          } catch (error) {
+            // If API call fails, show a generic error message to the user
+            seterror("A generic Error Occured")
+            console.log(error)
+          }
+        })
+
+
 
 
 
@@ -63,22 +79,7 @@ const page = () => {
         </Callout.Root>
       )}
 
-      <form
-        onSubmit={handleSubmit(async (data) => {
-          try {
-            // Send form data to our API route via PUT request
-            await axios.put('/api/issues', data)
-
-            // After successful submission, redirect user to the Issues list page
-            router.push('/Issues')
-
-          } catch (error) {
-            // If API call fails, show a generic error message to the user
-            seterror("A generic Error Occured")
-            console.log(error)
-          }
-        })}
-      >
+      <form onSubmit={onsubmit}>
 
 
 
