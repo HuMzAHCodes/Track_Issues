@@ -3,6 +3,7 @@ import prisma from '@/prisma/client'
 import { Card, Flex, Heading, Text } from '@radix-ui/themes';
 import { notFound } from 'next/navigation'
 import ReactMarkDown from "react-markdown"
+import delay from 'delay';
 
 interface props {
   params: Promise<{ id: string }>
@@ -20,6 +21,7 @@ const IssueDetailPage = async ({ params }: props) => {
   })
 
   if (!issue) notFound();
+   await delay(1200)
 
   return (
     <div>

@@ -11,12 +11,17 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { createissueschema } from '@/app/validationschemas';
 import { z } from "zod";
 import ErrorMessage from '@/app/components/ErrorMessage';
+import Skeleton from 'react-loading-skeleton'
+import 'react-loading-skeleton/dist/skeleton.css'
 
 
 
 
 // Disable SSR for SimpleMDE since it doesn't support server-side rendering
-const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false });
+const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false,
+  loading: () => <Skeleton height="20rem" />   // ← add this
+
+ });
 
 // Automatically infer the TypeScript type from the Zod schema
 // This way we don't need to manually define the interface — schema and type stay in sync
