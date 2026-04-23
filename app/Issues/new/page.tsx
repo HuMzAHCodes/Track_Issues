@@ -18,8 +18,9 @@ import 'react-loading-skeleton/dist/skeleton.css'
 
 
 // Disable SSR for SimpleMDE since it doesn't support server-side rendering
-const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false,
-  loading: () => <Skeleton height="20rem" />   // ← add this
+const SimpleMDE = dynamic(() => import("react-simplemde-editor"), { ssr: false
+  // ,
+  // loading: () => <Skeleton height="20rem" />   // ← add this
 
  });
 
