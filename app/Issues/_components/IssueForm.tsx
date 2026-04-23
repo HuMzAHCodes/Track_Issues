@@ -8,7 +8,7 @@ import axios from "axios"
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
-import { createissueschema } from '@/app/validationschemas'
+import { issueschema } from '@/app/validationschemas'
 import { z } from "zod"
 import ErrorMessage from '@/app/components/ErrorMessage'
 import Skeleton from 'react-loading-skeleton'
@@ -25,7 +25,7 @@ const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
 
 // Automatically infer the TypeScript type from the Zod schema
 // This way we don't need to manually define the interface — schema and type stay in sync
-type IssueFormData = z.infer<typeof createissueschema>
+type IssueFormData = z.infer<typeof issueschema>
 
 
 
@@ -38,7 +38,7 @@ const IssueForm = ({issue}:{issue:Issue}) => {
     formState: { errors } // Contains validation errors for each field, populated by zodResolver
   } = useForm<IssueFormData>({
     // zodResolver connects our Zod schema to react-hook-form for automatic validation
-    resolver: zodResolver(createissueschema)
+    resolver: zodResolver(issueschema)
   })
 
   // useRouter allows programmatic navigation — used here to redirect after form submission
@@ -50,6 +50,11 @@ const IssueForm = ({issue}:{issue:Issue}) => {
 
   const onsubmit = handleSubmit(async (data) => {
     try {
+
+      if(issue)
+        await axios.patch("/api/issues/" +issue.id,data)
+
+      else 
       // Send form data to our API route via PUT request
       await axios.put('/api/issues', data)
 
@@ -104,7 +109,7 @@ const IssueForm = ({issue}:{issue:Issue}) => {
           <Text>{errors.description?.message}</Text>
         </ErrorMessage>
 
-        <Button>Submit New Issue</Button>
+        <Button> {issue?"Update Issue":"Submit New Issue"}{" "}</Button>
 
       </form>
 
