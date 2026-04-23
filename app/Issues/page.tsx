@@ -55,5 +55,40 @@ const IssuesPage = async () => {
     </div>
   )
 }
-
+export const dynamic="force-dynamic"
 export default IssuesPage;
+
+
+// =====================================================
+// 📌 What does this do?
+// =====================================================
+// This tells Next.js to ALWAYS render this page dynamically
+// on every request (like traditional server-side rendering).
+
+// =====================================================
+// 🧠 Why is this needed?
+// =====================================================
+// By default, Next.js tries to optimize pages by caching them
+// (Static Rendering) if it thinks the data doesn't change often.
+
+// But in this page:
+// → We are fetching data from the database (prisma.issue.findMany())
+// → Issues can change anytime (new issues, updates, deletes)
+
+// So we FORCE Next.js to:
+// ❌ NOT cache the page
+// ❌ NOT use static generation
+// ✅ ALWAYS fetch fresh data from the database
+
+// =====================================================
+// 🎯 In simple words:
+// =====================================================
+// "Always show the latest data from the database,
+//  don't cache this page."
+
+// =====================================================
+// ⚡ Alternative (for understanding)
+// =====================================================
+// dynamic = "auto"          → Next.js decides (default)
+// dynamic = "force-static"  → Always cached/static
+// dynamic = "force-dynamic" → Always fresh (no caching)

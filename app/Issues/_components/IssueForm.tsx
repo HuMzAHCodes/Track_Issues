@@ -60,6 +60,7 @@ const IssueForm = ({issue}:{issue:Issue}) => {
 
       // After successful submission, redirect user to the Issues list page
       router.push('/Issues')
+      router.refresh()
     } catch (error) {
       // If API call fails, show a generic error message to the user
       seterror("A generic Error Occured")
@@ -118,3 +119,14 @@ const IssueForm = ({issue}:{issue:Issue}) => {
 }
 
 export default IssueForm
+
+
+// -----------------------------------------------------
+// 🎯 Simple Understanding
+// -----------------------------------------------------
+
+// router.refresh() = "Re-fetch server data without changing the page"
+
+// Use it ONLY when:
+// → You stay on the same page
+// → But want updated data from database
