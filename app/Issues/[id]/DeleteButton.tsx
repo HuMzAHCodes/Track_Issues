@@ -1,0 +1,10 @@
+import { Button } from '@radix-ui/themes'
+import React from 'react'
+
+const DeleteButton = ({ issueId }: { issueId: number }) => {
+    return (
+        <Button color="red"> Delete Issue </Button>
+    )
+}
+
+export default DeleteButton;

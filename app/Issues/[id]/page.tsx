@@ -7,6 +7,7 @@ import EditIssueButton from './EditIssueButton';
 
 import NextLink from 'next/link'
 import IssueDetails from './IssueDetails';
+import DeleteButton from './DeleteButton';
 
 
 interface Props {
@@ -24,14 +25,18 @@ const IssueDetailPage = async ({ params }: Props) => {
   if (!issue) notFound();
 
   return (
-    <Grid columns={{ initial: "1", md: "2" }} gap="5">
+    <Grid columns={{ initial: "1", sm: "5" }} gap="5">
 
-      <Box>
-        <IssueDetails issue={issue}/>
+      <Box className='md:col-span-4'>
+        <IssueDetails issue={issue} />
       </Box>
 
       <Box>
-         <EditIssueButton issueId={issue.id}/>
+        <Flex direction="column" gap="4">
+          <EditIssueButton issueId={issue.id} />
+          <DeleteButton issueId={issue.id} />
+        </Flex>
+
       </Box>
 
     </Grid>
