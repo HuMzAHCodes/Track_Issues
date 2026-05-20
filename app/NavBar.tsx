@@ -5,6 +5,8 @@ import Link from "next/link";
 import { FaBug } from "react-icons/fa6"; // Logo icon
 import { usePathname } from "next/navigation"; // To get current route
 import classNames from "classnames"; // Utility for conditional classes
+import { Box } from "@radix-ui/themes";
+import {useSession}from"next-auth/react"
 
 
 
@@ -18,6 +20,8 @@ const NavBar = () => {
     { label: "Issues", href: "/Issues" }
   ];
 
+
+   const{status,data:session}=useSession();
 
 
   // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -61,6 +65,13 @@ const NavBar = () => {
           </li>
         ))}
       </ul>
+
+      <Box>
+
+        {status=="authenticated" && (<Link href="/api/auth/signout"> Log out </Link>)}
+        {status=="unauthenticated" && (<Link href="/api/auth/signin"> Log In </Link>)}
+
+      </Box>
 
     </nav>
   );
