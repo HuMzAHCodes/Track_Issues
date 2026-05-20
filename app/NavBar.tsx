@@ -1,77 +1,74 @@
-"use client"; // Enables client-side features (hooks, navigation state)
+"use client";
 
 import React from "react";
 import Link from "next/link";
-import { FaBug } from "react-icons/fa6"; // Logo icon
-import { usePathname } from "next/navigation"; // To get current route
-import classNames from "classnames"; // Utility for conditional classes
-import { Box } from "@radix-ui/themes";
-import {useSession}from"next-auth/react"
-
-
-
-
+import { FaBug } from "react-icons/fa6";
+import { usePathname } from "next/navigation";
+import classNames from "classnames";
+import { Box, Container } from "@radix-ui/themes";
+import { useSession } from "next-auth/react"
 
 
 const NavBar = () => {
-  // Navigation links data
+
   const links = [
     { label: "Dashboard", href: "/" },
     { label: "Issues", href: "/Issues" }
   ];
 
+  const { status, data: session } = useSession();
 
-   const{status,data:session}=useSession();
-
-
-  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-  // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-  // Get current path (e.g., "/", "/Issues")
   const currentPath = usePathname();
 
   return (
-    // Main navigation container
-    <nav className="flex space-x-6 border-b mb-5 px-5 h-14 items-center">
-      
-      {/* Logo section */}
-      <Link href="/">
-        <FaBug />
-      </Link>
+    <nav className="border-b mb-5 px-5 h-14">
 
-      {/* Navigation links */}
-      <ul className="flex space-x-6">
-        {links.map((link) => (
-          <li key={link.href}>
-            <Link
-              href={link.href}
-              className={classNames(
-                // Base styling (applies to all links)
-                "transition-colors duration-300",
+      {/* Container limits the max width and centers the content */}
+      <Container>
 
-                // Conditional styling
-                {
-                  // Active link (current page)
-                  "text-black font-semibold": currentPath === link.href,
+        <div className="flex justify-between items-center h-14">
 
-                  // Inactive links
-                  "text-gray-500 hover:text-black": currentPath !== link.href
-                }
-              )}
-            >
-              {link.label}
+          {/* ── LEFT SECTION — logo + nav links ── */}
+          <div className="flex items-center space-x-6">
+
+            <Link href="/">
+              <FaBug />
             </Link>
-          </li>
-        ))}
-      </ul>
 
-      <Box>
+            <ul className="flex space-x-6">
+              {links.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className={classNames(
+                      "transition-colors duration-300",
+                      {
+                        "text-black font-semibold": currentPath === link.href,
+                        "text-gray-500 hover:text-black": currentPath !== link.href
+                      }
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
 
-        {status=="authenticated" && (<Link href="/api/auth/signout"> Log out </Link>)}
-        {status=="unauthenticated" && (<Link href="/api/auth/signin"> Log In </Link>)}
+          </div>
 
-      </Box>
+          {/* ── RIGHT SECTION — login / logout ── */}
+          <Box>
+            {status === "authenticated" && (
+              <Link href="/api/auth/signout"> Log Out </Link>
+            )}
+            {status === "unauthenticated" && (
+              <Link href="/api/auth/signin"> Log In </Link>
+            )}
+          </Box>
+
+        </div>
+
+      </Container>
 
     </nav>
   );
