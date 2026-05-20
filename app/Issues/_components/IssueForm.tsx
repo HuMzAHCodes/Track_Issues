@@ -29,7 +29,7 @@ type IssueFormData = z.infer<typeof issueschema>
 
 
 
-const IssueForm = ({issue}:{issue:Issue}) => {
+const IssueForm = ({ issue }: { issue?: Issue }) => {
 
   const {
     register,            // Connects inputs to react-hook-form so it tracks their values

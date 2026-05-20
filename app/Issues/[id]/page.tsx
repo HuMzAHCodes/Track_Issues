@@ -18,9 +18,12 @@ const IssueDetailPage = async ({ params }: Props) => {
 
   const { id } = await params;
 
+  const issueId = parseInt(id, 10);
+  if (Number.isNaN(issueId)) notFound();
+
   const issue = await prisma.issue.findUnique({
-    where: { id: parseInt(id) }
-  })
+    where: { id: issueId },
+  });
 
   if (!issue) notFound();
 

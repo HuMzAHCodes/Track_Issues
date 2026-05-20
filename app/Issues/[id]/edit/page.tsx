@@ -17,6 +17,8 @@ const EditIssuePage = async ({ params }: props) => {
   // In Next.js 14 you could do params.id directly — no longer valid in Next.js 15
   const { id } = await params
 
+  const issueId = parseInt(id, 10)
+  if (Number.isNaN(issueId)) notFound()
 
   // prisma.issue refers to the "issue" model defined in schema.prisma
   // Prisma auto-generates a client with methods for every model you define
@@ -41,7 +43,7 @@ const EditIssuePage = async ({ params }: props) => {
   // findUnique() is used here because id is a unique field in our schema
   // It will return the issue object if found, or null if not found
   const issue = await prisma.issue.findUnique({
-    where: { id: parseInt(id) }   // parseInt because params.id is a string, but DB expects an Int
+    where: { id: issueId },
   })
 
 
