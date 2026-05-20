@@ -1,5 +1,6 @@
 import { issueschema } from "@/app/validationschemas";
 import prisma from "@/prisma/client";
+import delay from "delay";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -39,6 +40,8 @@ export async function PATCH(
 
 
 export async function DELETE(
+
+ 
   request: NextRequest,
   // ❌ ISSUE 1: params is a Promise in Next.js 15 — must be typed as Promise<{id:string}>
   // and destructured with await, same as PATCH above
@@ -55,6 +58,7 @@ export async function DELETE(
   if (isNaN(issueId))
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
 
+   await delay(2000);
   const issue = await prisma.issue.findUnique({
     where: { id: issueId }
   })

@@ -1,5 +1,6 @@
 "use client"
 
+import Spinner from '@/app/components/Spinner'
 import { AlertDialog, Button, Flex } from '@radix-ui/themes'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
@@ -9,33 +10,44 @@ const DeleteButton = ({ issueId }: { issueId: number }) => {
 
     const router = useRouter();
     const [error, seterror] = useState(false);
+    const[isdeleting,setisdeleting]=useState(false);
     const deleteissue = async () => {
         try {
+            setisdeleting(true)
             // simulating an error to test the error dialog
             // throw new Error() forces execution to jump to catch block immediately
             // comment this out when testing real deletion
-            throw new Error();
+            // throw new Error();
+
+            //uncomment the above to simulate error
 
             await axios.delete("/api/issues/" + issueId)
             router.push("/Issues")
             router.refresh();
 
         } catch (error) {
+            setisdeleting(false)
             seterror(true)
         }
     }  
     return (
         <>
-            {/* ── CONFIRMATION DIALOG ── */}
+             {/* ── CONFIRMATION DIALOG ── */}
             <AlertDialog.Root>
                 <AlertDialog.Trigger>
-                    <Button color="red"> Delete Issue </Button>
+
+                    {/* ✅ spinner lives HERE — on the trigger button, outside the dialog   */}
+                    {/* this button stays mounted even after the dialog closes               */}
+                    {/* so isdeleting=true correctly shows the spinner during the API delay  */}
+                    <Button color="red" disabled={isdeleting}>
+                        Delete Issue
+                        {isdeleting && <Spinner />}
+                    </Button>
+
                 </AlertDialog.Trigger>
 
                 <AlertDialog.Content>
-                    <AlertDialog.Title>
-                        Confirm Deletion
-                    </AlertDialog.Title>
+                    <AlertDialog.Title>Confirm Deletion</AlertDialog.Title>
                     <AlertDialog.Description>
                         Are you sure you want to perform this ACTION??
                     </AlertDialog.Description>
@@ -45,6 +57,7 @@ const DeleteButton = ({ issueId }: { issueId: number }) => {
                             <Button variant="soft" color="gray"> Cancel </Button>
                         </AlertDialog.Cancel>
 
+                        {/* clicking Action closes the dialog immediately — Radix default behavior */}
                         <AlertDialog.Action>
                             <Button color="red" onClick={deleteissue}> Delete Issue </Button>
                         </AlertDialog.Action>
