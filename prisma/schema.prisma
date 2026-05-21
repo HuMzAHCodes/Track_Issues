@@ -15,9 +15,15 @@ model Issue {
   updatedAt   DateTime @updatedAt
   // Automatically updates whenever the record is modified
 
-  status Status  @default(OPEN)
-  user   User?   @relation(fields: [userId], references: [id])
+  status Status @default(OPEN)
+
+  // named relation — "AuthoredIssues" distinguishes this from the assigned relation
+  user   User?   @relation("AuthoredIssues", fields: [userId], references: [id])
   userId String?
+
+  // named relation — "AssignedIssues" distinguishes this from the user relation
+  assignedToUser   User?   @relation("AssignedIssues", fields: [assignedToUserId], references: [id])
+  assignedToUserId String? @db.VarChar(255)
 }
 
 enum Status {
@@ -40,6 +46,7 @@ enum Status {
 // An enum defines a fixed set of allowed values for a field.
 // It restricts data to predefined options (e.g., OPEN, CLOSED).
 // Helps maintain data consistency and prevents invalid entries.
+
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -68,14 +75,17 @@ model Session {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  name           String?
-  email          String?   @unique
-  emailVerified  DateTime?
-  image          String?
-  accounts       Account[]
-  sessions       Session[]
-  assignedIssues Issue[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  // must match the relation names used in Issue model
+  authoredIssues Issue[] @relation("AuthoredIssues")
+  assignedIssues Issue[] @relation("AssignedIssues")
 }
 
 model VerificationToken {
@@ -85,3 +95,90 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODEL: Issue
+// ─────────────────────────────────────────────────────────────────────────────
+// represents the "Issue" table in the database — each row is one issue
+//
+// id               → INT, PRIMARY KEY, auto-increments (1, 2, 3...) for each new issue
+// title            → VARCHAR(255) — short text, max 255 characters
+// description      → TEXT — long content, no character limit (markdown from SimpleMDE)
+// createdAt        → DATETIME, auto-set to current time when issue is created
+// updatedAt        → DATETIME, auto-updates to current time whenever issue is modified
+// status           → enum field — must be OPEN, IN_PROGRESS, or CLOSED — defaults to OPEN
+// userId           → foreign key (String?) linking to User.id — optional (nullable)
+// user             → named relation "AuthoredIssues" — the user who created the issue
+// assignedToUserId → foreign key (String?) linking to User.id for assigned user
+// assignedToUser   → named relation "AssignedIssues" — the user assigned to fix the issue
+//
+// WHY TWO NAMED RELATIONS?
+// both user and assignedToUser point to the same User model
+// Prisma gets confused about which relation is which without names
+// @relation("AuthoredIssues") and @relation("AssignedIssues") uniquely label each one
+// the names must match exactly on both sides (Issue model and User model)
+//
+// ? on a field means it is OPTIONAL (nullable in database)
+// ─────────────────────────────────────────────────────────────────────────────
+// MODEL: Account
+// ─────────────────────────────────────────────────────────────────────────────
+// represents the "Account" table — stores OAuth connections (e.g. Google login)
+// managed automatically by next-auth — you never write to this table manually
+//
+// id                → STRING, PRIMARY KEY, cuid() generates unique strings
+// userId            → foreign key linking to User.id
+// type              → type of account e.g. "oauth"
+// provider          → which service e.g. "google", "github"
+// providerAccountId → the user's id on Google/GitHub's system
+// refresh_token     → TEXT, optional — used to get new access tokens
+// access_token      → TEXT, optional — token used to call Google APIs
+// expires_at        → INT, optional — unix timestamp of token expiry
+// token_type        → optional — usually "Bearer"
+// scope             → optional — what permissions were granted
+// id_token          → TEXT, optional — JWT from the OAuth provider
+// session_state     → optional — OAuth session state
+// user              → relation to User, onDelete:Cascade means if User is deleted,
+//                     their Accounts are deleted too
+// @@unique([provider, providerAccountId]) → prevents same Google account linking twice
+// ─────────────────────────────────────────────────────────────────────────────
+// MODEL: Session
+// ─────────────────────────────────────────────────────────────────────────────
+// represents the "Session" table — stores active login sessions
+// managed automatically by next-auth — you never write to this table manually
+//
+// id           → STRING, PRIMARY KEY, cuid()
+// sessionToken → UNIQUE string stored as a cookie in the browser
+//                next-auth checks this on every request to identify logged-in user
+// userId       → foreign key linking to User.id
+// expires      → DATETIME — when this session expires and user gets logged out
+// user         → relation to User, onDelete:Cascade means if User is deleted,
+//                their Sessions are deleted too
+// ─────────────────────────────────────────────────────────────────────────────
+// MODEL: User
+// ─────────────────────────────────────────────────────────────────────────────
+// represents the "User" table — stores registered users
+// created automatically by next-auth when someone logs in for the first time
+//
+// id             → STRING, PRIMARY KEY, cuid()
+// name           → optional — comes from Google profile
+// email          → optional but UNIQUE — no two users can share an email
+// emailVerified  → optional DATETIME — when user verified their email (null if not)
+// image          → optional — profile picture URL from Google
+// accounts       → Account[] — one user can have MANY linked OAuth accounts
+// sessions       → Session[] — one user can have MANY active sessions
+// authoredIssues → Issue[] @relation("AuthoredIssues") — issues created by this user
+// assignedIssues → Issue[] @relation("AssignedIssues") — issues assigned to this user
+//
+// all fields are optional (?) because OAuth providers may not always return all info
+// ─────────────────────────────────────────────────────────────────────────────
+// MODEL: VerificationToken
+// ─────────────────────────────────────────────────────────────────────────────
+// represents the "VerificationToken" table — used for email/magic link login
+// managed automatically by next-auth
+//
+// identifier → usually the user's email address
+// token      → UNIQUE verification code sent to the user's email
+// expires    → DATETIME — when this token becomes invalid
+// @@unique([identifier, token]) → combination of both must be unique
+//                                 prevents same token being reused for different emails
+// ─────────────────────────────────────────────────────────────────────────────
