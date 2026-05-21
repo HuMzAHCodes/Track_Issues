@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import classNames from "classnames";
 import { useSession } from "next-auth/react"
 import { Avatar, Box, Container, DropdownMenu, Text } from "@radix-ui/themes";
-
+import { Skeleton } from "@/app/components"
 
 const NavBar = () => {
   return (
@@ -72,11 +72,9 @@ const AuthStatus = () => {
   const { status, data: session } = useSession();
 
   // while session is being fetched, render nothing to avoid layout flash
-  if (status === "loading") return null;
+  if (status === "loading") return <Skeleton width="3rem"/>;
 
-  // ❌ SYNTAX ERROR: return was on its own line — JavaScript inserts a semicolon
-  // after return automatically, making the JSX below it unreachable dead code
-  // ✅ FIX: JSX must start on the same line as return, or be wrapped in ()
+  
   if (status === "unauthenticated")
     return <Link href="/api/auth/signin"> Log In </Link>
 
