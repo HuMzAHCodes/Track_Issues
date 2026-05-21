@@ -1,6 +1,8 @@
+import authOptions from "@/app/auth/authOptions";
 import { issueschema } from "@/app/validationschemas";
 import prisma from "@/prisma/client";
 import delay from "delay";
+import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 
@@ -8,9 +10,18 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+
+  
   const { id } = await params;
 
   const body = await request.json();
+
+
+  const session=await getServerSession(authOptions);
+    if(!session)
+        return NextResponse.json({},{status:401})
+
+
 
   const validation = issueschema.safeParse(body);
   if (!validation.success)
@@ -54,6 +65,13 @@ export async function DELETE(
   // ✅ FIX: parse id from the awaited destructure, not from params.id directly
   const issueId = parseInt(id);
 
+
+  const session=await getServerSession(authOptions);
+    if(!session)
+        return NextResponse.json({},{status:401})
+
+
+    
   // ✅ FIX: validate that id is actually a number before querying
   if (isNaN(issueId))
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
@@ -78,3 +96,22 @@ export async function DELETE(
   return NextResponse.json({});
 
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// getServerSession(authOptions) — WHAT IT DOES
+// ─────────────────────────────────────────────────────────────────────────────
+// Runs on the server inside this API route (not in the browser).
+// It reads the NextAuth session cookie from the incoming request, validates it using
+// the same authOptions config (providers, adapter, secrets), and returns the current
+// user's session object — or null if the user is not signed in.
+// We pass authOptions so NextAuth knows how this app was configured when checking the cookie.
+// If it returns null, we respond with 401 Unauthorized and skip the database update/delete.
+// Middleware only guards page URLs; API routes must protect themselves this way.
+// ─────────────────────────────────────────────────────────────────────────────
+// session — WHAT IT IS
+// ─────────────────────────────────────────────────────────────────────────────
+// The variable `session` is the logged-in user's auth record from NextAuth.
+// When truthy, someone signed in (e.g. via Google); you can use session.user.email, etc.
+// When null/undefined, the request is anonymous — we reject PATCH and DELETE with 401.
+// The session cookie was originally created at sign-in through /api/auth/* using authOptions.
+// ─────────────────────────────────────────────────────────────────────────────
