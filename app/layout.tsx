@@ -2,11 +2,11 @@ import './globals.css'
 import type { Metadata } from 'next'
 import "@radix-ui/themes/styles.css";
 import"./default_font.css"
-import { Container, Theme, ThemePanel } from "@radix-ui/themes";
+import { Container, Theme } from "@radix-ui/themes";
 import { Inter } from 'next/font/google'
-// ✅ correct
 import NavBar from './NavBar';
 import AuthProvider from './auth/Provider';
+import QueryClientProvider from './QueryClientProvider'; // ← import our wrapper
 const inter = Inter({ subsets: ['latin'] ,variable: "--font-inter", })
 
 export const metadata: Metadata = {
@@ -22,13 +22,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.variable}>
+
+        {/* AuthProvider — handles Google session, makes useSession() available everywhere */}
         <AuthProvider>
-          <Theme accentColor="sky" radius="large">
-            <NavBar />
-            <main className="p-5">
-              <Container>{children}</Container>
-            </main>
-          </Theme>
+
+          {/* QueryClientProvider — makes useQuery() available everywhere  */}
+          {/* must wrap the entire app so any component can use TanStack Query */}
+          {/* AssigneeSelect uses useQuery() — it needs this provider above it in the tree */}
+          <QueryClientProvider>
+
+            <Theme accentColor="sky" radius="large">
+              <NavBar />
+              <main className="p-5">
+                <Container>{children}</Container>
+              </main>
+            </Theme>
+
+          </QueryClientProvider>
+
         </AuthProvider>
       </body>
     </html>

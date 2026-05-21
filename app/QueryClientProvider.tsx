@@ -4,6 +4,25 @@ import { QueryClient, QueryClientProvider as ReactQueryClientProvider } from '@t
 import { PropsWithChildren } from 'react';
 
 
+
+const queryClient = new QueryClient();
+const QueryClientProvider = ({ children }: PropsWithChildren) => {
+
+
+  return (
+   <ReactQueryClientProvider client={queryClient}>
+      {children}
+    </ReactQueryClientProvider>
+ )
+}
+
+export default QueryClientProvider
+
+
+
+
+
+
 // QueryClient is the core engine of TanStack Query
 // it manages everything behind the scenes:
 // - stores the cached data from all API calls
@@ -11,27 +30,38 @@ import { PropsWithChildren } from 'react';
 // - handles retrying failed requests
 // - decides when data is stale and needs refetching
 // created ONCE outside the component so it persists across re-renders
-const queryClient = new QueryClient();
+
+
+
+
+
 
 
 // PropsWithChildren automatically adds "children: ReactNode" to the props type
 // so we don't have to manually write { children: ReactNode }
 // it's a built-in TypeScript utility from React for wrapper/provider components
-const QueryClientProvider = ({ children }: PropsWithChildren) => {
-  return (
 
-    // ReactQueryClientProvider is the actual TanStack provider
+
+
+
+
+
+
+
+ // ReactQueryClientProvider is the actual TanStack provider
     // it uses React Context to make the queryClient accessible
     // to every component in your app — without passing it as props manually
     // client={queryClient} connects the engine we created above to the provider
-    <ReactQueryClientProvider client={queryClient}>
-      {children}
-    </ReactQueryClientProvider>
 
-  )
-}
 
-export default QueryClientProvider
+
+
+
+
+
+
+
+
 
 
 // ─────────────────────────────────────────────────────────────────────────────
