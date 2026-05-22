@@ -39,17 +39,27 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid issue ID" }, { status: 404 });
 
   const updatedIssue = await prisma.issue.update({
-    where: { id: issueId },
-    data: {
-      title: body.title,
-      description: body.description,
-      assignedToUserId: body.assignedToUserId
-    },
-  });
+  where: { id: issueId },
+  data: {
+    title: body.title,
+    description: body.description,
+
+      // ❌ ERROR: Prisma does not allow setting relation foreign keys directly
+      // like a plain field. `assignedToUserId` is a relation FK, so Prisma
+      // requires it to be updated through the `user` relation instead.
+      // assignedToUserId: body.assignedToUserId  <-- removed
+
+      // ✅ FIX: Use a nested relation update.
+      // - If an ID is provided, `connect` links the issue to that user.
+      // - If no ID is provided (unassigning), `disconnect` removes the link.
+      assignedToUser: body.assignedToUserId
+      ? { connect: { id: body.assignedToUserId } }
+      : { disconnect: true },
+  },
+});
 
   return NextResponse.json(updatedIssue);
 }
-
 
 export async function DELETE(
   request: NextRequest,
@@ -138,6 +148,24 @@ export async function DELETE(
 // Step 8 — prisma.issue.update() applies the changes to the database
 //           only the fields present in body are updated — others stay unchanged
 //           this is the PARTIAL update behavior of PATCH
+
+// Step 9 — prisma.issue.update() applies the partial changes to the database
+//           `where: { id: issueId }` targets the exact issue row to update
+//           `data` contains only the fields we want to change — others stay untouched
 //
-// Step 9 — return the updated issue as JSON with default 200 OK status
+//           title and description are updated directly if present in body
+//           undefined fields are ignored by Prisma automatically (PATCH behavior)
+//
+//           assignedToUserId cannot be set directly as a raw FK value in Prisma —
+//           it must be updated through the named relation `assignedToUser`
+//
+//           if body.assignedToUserId is truthy (a valid user id string):
+//             → { connect: { id: body.assignedToUserId } }
+//             → Prisma sets assignedToUserId = that user's id in the database
+//
+//           if body.assignedToUserId is null/undefined (unassigning):
+//             → { disconnect: true }
+//             → Prisma sets assignedToUserId = NULL in the database
+//
+// Step 10 — return the updated issue as JSON with default 200 OK status
 // ─────────────────────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 "use client"
 
-import { User } from '@prisma/client';
+import { Issue, User } from '@prisma/client';
 import { Select } from '@radix-ui/themes'
 import axios from 'axios';
 import React, { useEffect, useState } from 'react'
@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import Skeleton from 'react-loading-skeleton';
 
 
-const AssigneeSelect = () => {
+const AssigneeSelect = ({issue}:{issue:Issue}) => {
 
   const { data: Users, error, isLoading } = useQuery<User[]>({
     queryKey: ["user"],
@@ -37,20 +37,28 @@ const AssigneeSelect = () => {
 
 
   return (
-    <Select.Root>
-      <Select.Trigger placeholder="Assign..." />
-      <Select.Content>
-        <Select.Group>
-          <Select.Label>Suggestions</Select.Label>
-          {Users?.map(user => (
-            <Select.Item key={user.id} value={user.id}>
-              {user.name ?? "Unknown"}
-            </Select.Item>
-          ))}
-        </Select.Group>
-      </Select.Content>
-    </Select.Root>
-  )
+  <Select.Root
+    defaultValue={issue.assignedToUserId || "none"}  // ✅ "none" instead of ""
+    onValueChange={(UserId) => {
+      axios.patch("/api/issues/" + issue.id, {
+        assignedToUserId: UserId === "none" ? null : UserId  // ✅ "none" → send null to API
+      });
+    }}>
+
+    <Select.Trigger placeholder="Assign..." />
+    <Select.Content>
+      <Select.Group>
+        <Select.Label>Suggestions</Select.Label>
+        <Select.Item value="none"> Unassign </Select.Item>  {/* ✅ "none" instead of "" */}
+        {Users?.map(user => (
+          <Select.Item key={user.id} value={user.id}>
+            {user.name ?? "Unknown"}
+          </Select.Item>
+        ))}
+      </Select.Group>
+    </Select.Content>
+  </Select.Root>
+)
 }
 
 export default AssigneeSelect
