@@ -23,6 +23,17 @@ const AssigneeSelect = ({issue}:{issue:Issue}) => {
 
   if (error) return null;
 
+  const assignissue=async (UserId:String) => {
+     // make wrong api call to simulate error
+        try {
+          await axios.patch("/api/issues/" + issue.id, {
+            assignedToUserId: UserId === "none" ? null : UserId  // ✅ "none" → send null to API
+          });
+        } catch {
+          toast.error("changes could not be made");
+        }
+      }
+
 
   //   const [users, setusers] = useState<User[]>([]);
   //   useEffect(() => {
@@ -41,16 +52,7 @@ return (
   <>
     <Select.Root
       defaultValue={issue.assignedToUserId || "none"}  // ✅ "none" instead of ""
-      onValueChange={async (UserId) => {
-     // make wrong api call to simulate error
-        try {
-          await axios.patch("/api/issues/" + issue.id, {
-            assignedToUserId: UserId === "none" ? null : UserId  // ✅ "none" → send null to API
-          });
-        } catch {
-          toast.error("changes could not be made");
-        }
-      }}>
+      onValueChange={assignissue}>
 
       <Select.Trigger placeholder="Assign..." />
       <Select.Content>
