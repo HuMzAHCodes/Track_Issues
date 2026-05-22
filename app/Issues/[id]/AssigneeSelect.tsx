@@ -6,6 +6,7 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query';
 import Skeleton from 'react-loading-skeleton';
+import toast,{Toaster} from "react-hot-toast";
 
 
 const AssigneeSelect = ({issue}:{issue:Issue}) => {
@@ -36,28 +37,36 @@ const AssigneeSelect = ({issue}:{issue:Issue}) => {
   // no need of useeffect , and useState anymore
 
 
-  return (
-  <Select.Root
-    defaultValue={issue.assignedToUserId || "none"}  // ✅ "none" instead of ""
-    onValueChange={(UserId) => {
-      axios.patch("/api/issues/" + issue.id, {
-        assignedToUserId: UserId === "none" ? null : UserId  // ✅ "none" → send null to API
-      });
-    }}>
+return (
+  <>
+    <Select.Root
+      defaultValue={issue.assignedToUserId || "none"}  // ✅ "none" instead of ""
+      onValueChange={async (UserId) => {
+     // make wrong api call to simulate error
+        try {
+          await axios.patch("/api/issues/" + issue.id, {
+            assignedToUserId: UserId === "none" ? null : UserId  // ✅ "none" → send null to API
+          });
+        } catch {
+          toast.error("changes could not be made");
+        }
+      }}>
 
-    <Select.Trigger placeholder="Assign..." />
-    <Select.Content>
-      <Select.Group>
-        <Select.Label>Suggestions</Select.Label>
-        <Select.Item value="none"> Unassign </Select.Item>  {/* ✅ "none" instead of "" */}
-        {Users?.map(user => (
-          <Select.Item key={user.id} value={user.id}>
-            {user.name ?? "Unknown"}
-          </Select.Item>
-        ))}
-      </Select.Group>
-    </Select.Content>
-  </Select.Root>
+      <Select.Trigger placeholder="Assign..." />
+      <Select.Content>
+        <Select.Group>
+          <Select.Label>Suggestions</Select.Label>
+          <Select.Item value="none"> Unassign </Select.Item>  {/* ✅ "none" instead of "" */}
+          {Users?.map(user => (
+            <Select.Item key={user.id} value={user.id}>
+              {user.name ?? "Unknown"}
+            </Select.Item>
+          ))}
+        </Select.Group>
+      </Select.Content>
+    </Select.Root>
+    <Toaster/>
+  </>
 )
 }
 
