@@ -33,10 +33,18 @@ const IssuesPage = async ({ searchParams }: props) => {
     ? status
     : undefined;
 
+  // ✅ FIXED: proper ternary — check if orderBy from URL is a valid column,
+  // then build the Prisma orderBy object, otherwise use undefined
+  const orderby = columns.map(column => column.value).includes(orderBy)
+    ? { [orderBy]: "asc" }
+    : undefined;
+
   const issues = await prisma.issue.findMany({
     where: {
       status: validatedStatus
-    }
+    },
+    // ✅ Use the validated `orderby` const here instead of raw searchParams
+    orderBy: orderby
   });
 
 
@@ -67,13 +75,11 @@ const IssuesPage = async ({ searchParams }: props) => {
               <Table.Cell>
                 <Link href={`/Issues/${issue.id}`}>{issue.title}</Link>
 
-                {/* On mobile, show status badge below the title */}
                 <div className="block md:hidden">
                   <IssueStatusBadge status={issue.status} />
                 </div>
               </Table.Cell>
 
-              {/* On desktop, show status and date in separate columns */}
               <Table.Cell className="hidden md:table-cell">
                 <IssueStatusBadge status={issue.status} />
               </Table.Cell>
@@ -92,8 +98,55 @@ const IssuesPage = async ({ searchParams }: props) => {
   )
 }
 
-export const dynamic = "force-dynamic"
+
+
+
 export default IssuesPage;
+export const dynamic = "force-dynamic"
+
+/*
+  =============================================================
+  WHY DO WE NEED `orderby` AT ALL?
+  =============================================================
+
+  The user can click any column header, which pushes its field name
+  into the URL as a query param: e.g. ?orderBy=createdAt
+
+  We read that value back via searchParams and pass it to Prisma so
+  the database returns rows sorted by whatever column the user clicked.
+  Without this, the table would always show issues in insertion order —
+  no sorting control for the user at all.
+
+  =============================================================
+  WHY A SEPARATE CONST INSTEAD OF DIRECTLY INSIDE THE QUERY?
+  =============================================================
+
+  Because `orderBy` coming from the URL is UNTRUSTED USER INPUT.
+
+  A user could manually type anything in the URL:
+    ?orderBy=password   ← not a real column, Prisma would throw
+    ?orderBy=__proto__  ← potentially dangerous key injection
+
+  The separate const acts as a VALIDATION GATE:
+
+    const orderby = columns.map(c => c.value).includes(orderBy)
+      ? { [orderBy]: "asc" }   // ✅ it's a known column — safe to use
+      : undefined;             // ❌ unknown value — ignore it, no sorting
+
+  If we skipped this and wrote directly:
+
+    orderBy: { [orderBy]: "asc" }   // 🚨 no validation
+
+  ...Prisma would receive an unknown field name and either throw a
+  runtime error or behave unexpectedly.
+
+  So the separate const keeps the query clean and the validation
+  logic readable and in one place.
+  =============================================================
+*/
+
+
+
 
 
 // =====================================================
