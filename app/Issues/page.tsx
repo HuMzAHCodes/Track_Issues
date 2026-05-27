@@ -33,8 +33,7 @@ const IssuesPage = async ({ searchParams }: props) => {
     ? status
     : undefined;
 
-  // ✅ FIXED: proper ternary — check if orderBy from URL is a valid column,
-  // then build the Prisma orderBy object, otherwise use undefined
+ 
   const orderby = columns.map(column => column.value).includes(orderBy)
     ? { [orderBy]: "asc" }
     : undefined;
