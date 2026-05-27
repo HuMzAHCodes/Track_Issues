@@ -2,280 +2,165 @@ import { Button, Table } from "@radix-ui/themes";
 import Link from "../components/Link";
 import prisma from '@/prisma/client';
 import IssueStatusBadge from "../components/IssueStatusBadge";
-import delay from "delay"
 import IssueActions from "./issueactions";
 import { Issue, Status } from "@prisma/client";
-import NextLink from "next/link";
-import { ArrowUpIcon } from "@radix-ui/react-icons";
-
-
-const columns: {
-  label: string;
-  value: keyof Issue;
-  className?: string
-}[] = [
-  { label: "Issue", value: "title" },
-  { label: "Status", value: "status", className: "hidden md:table-cell" },
-  { label: "CreatedAt", value: "createdAt", className: "hidden md:table-cell" }
-]
+import Pagination from "../components/Pagination";
+import IssueTable, { columnNames, issueQuery } from "./IssueTable";
 
 
 interface props {
-  searchParams: Promise<{ status: Status, orderBy: keyof Issue }>
+  searchParams: Promise<issueQuery>  //  Promise<issueQuery> not Promise<{issueQuery}>
 }
-
 
 const IssuesPage = async ({ searchParams }: props) => {
 
-  const { status, orderBy } = await searchParams;
+  const params = await searchParams;
+  const { status, orderBy } = params;
 
+  
   const validatedStatus = Object.values(Status).includes(status)
     ? status
     : undefined;
 
- 
-  const orderby = columns.map(column => column.value).includes(orderBy)
+
+
+  const orderby = columnNames.includes(orderBy)
     ? { [orderBy]: "asc" }
     : undefined;
 
+  
+
+
+  const page = parseInt(params.page || '1');
+  const pagesize = 10;
+
+  
   const issues = await prisma.issue.findMany({
-    where: {
-      status: validatedStatus
-    },
-    // ✅ Use the validated `orderby` const here instead of raw searchParams
-    orderBy: orderby
+    where: { status: validatedStatus },
+    orderBy: orderby,
+    skip: (page - 1) * pagesize,
+    take: pagesize
   });
 
+  
+  const issueCount = await prisma.issue.count({
+    where: { status: validatedStatus }  // ✅ validatedStatus not raw status
+  });
 
   return (
     <div>
-
       <IssueActions />
 
-      <Table.Root variant="surface">
+      {/* ── IssueTable ─────────────────────────────────────────────────────────
+          Receives the RESOLVED params object (not the Promise) because
+          IssueTable is not async and cannot await anything.
+          Also receives the issues array fetched above.
+      ──────────────────────────────────────────────────────────────────────── */}
+      <IssueTable searchParams={params} issues={issues} />
 
-        <Table.Header>
-          <Table.Row>
-            {columns.map((column) => (
-              <Table.ColumnHeaderCell key={column.value} className={column.className}>
-                <NextLink href={{ query: { status, orderBy: column.value } }}>
-                  {column.label}
-                </NextLink>
-                {column.value === orderBy && <ArrowUpIcon className="inline" />}
-              </Table.ColumnHeaderCell>
-            ))}
-          </Table.Row>
-        </Table.Header>
-
-        <Table.Body>
-          {issues.map((issue) => (
-            <Table.Row key={issue.id}>
-
-              <Table.Cell>
-                <Link href={`/Issues/${issue.id}`}>{issue.title}</Link>
-
-                <div className="block md:hidden">
-                  <IssueStatusBadge status={issue.status} />
-                </div>
-              </Table.Cell>
-
-              <Table.Cell className="hidden md:table-cell">
-                <IssueStatusBadge status={issue.status} />
-              </Table.Cell>
-
-              <Table.Cell className="hidden md:table-cell">
-                {issue.createdAt.toDateString()}
-              </Table.Cell>
-
-            </Table.Row>
-          ))}
-        </Table.Body>
-
-      </Table.Root>
-
+      {/* ── Pagination ─────────────────────────────────────────────────────────
+          itemCount → total matching issues (for calculating pageCount)
+          pageSize  → how many per page
+          currentPage → which page we're on right now
+          
+          When user clicks a page button, Pagination updates ?page= in the URL
+          → this component re-renders → Prisma skip/take recalculates → new slice
+      ──────────────────────────────────────────────────────────────────────── */}
+      <Pagination
+        pageSize={pagesize}
+        currentPage={page}
+        itemCount={issueCount}
+      />
     </div>
   )
 }
 
-
-
-
 export default IssuesPage;
+
+// Tells Next.js to always render this page fresh on every request.
+// Required because issues change frequently (create/edit/delete),
+// so cached/static HTML would show stale data.
 export const dynamic = "force-dynamic"
 
-/*
-  =============================================================
-  WHY DO WE NEED `orderby` AT ALL?
-  =============================================================
-
-  The user can click any column header, which pushes its field name
-  into the URL as a query param: e.g. ?orderBy=createdAt
-
-  We read that value back via searchParams and pass it to Prisma so
-  the database returns rows sorted by whatever column the user clicked.
-  Without this, the table would always show issues in insertion order —
-  no sorting control for the user at all.
-
-  =============================================================
-  WHY A SEPARATE CONST INSTEAD OF DIRECTLY INSIDE THE QUERY?
-  =============================================================
-
-  Because `orderBy` coming from the URL is UNTRUSTED USER INPUT.
-
-  A user could manually type anything in the URL:
-    ?orderBy=password   ← not a real column, Prisma would throw
-    ?orderBy=__proto__  ← potentially dangerous key injection
-
-  The separate const acts as a VALIDATION GATE:
-
-    const orderby = columns.map(c => c.value).includes(orderBy)
-      ? { [orderBy]: "asc" }   // ✅ it's a known column — safe to use
-      : undefined;             // ❌ unknown value — ignore it, no sorting
-
-  If we skipped this and wrote directly:
-
-    orderBy: { [orderBy]: "asc" }   // 🚨 no validation
-
-  ...Prisma would receive an unknown field name and either throw a
-  runtime error or behave unexpectedly.
-
-  So the separate const keeps the query clean and the validation
-  logic readable and in one place.
-  =============================================================
-*/
 
 
 
 
 
-// =====================================================
-// 📌 What does dynamic = "force-dynamic" do?
-// =====================================================
-// This tells Next.js to ALWAYS render this page dynamically
-// on every request (like traditional server-side rendering).
-
-// =====================================================
-//  Why is this needed?
-// =====================================================
-// By default, Next.js tries to optimize pages by caching them
-// (Static Rendering) if it thinks the data doesn't change often.
-
-// But in this page:
-// → We are fetching data from the database (prisma.issue.findMany())
-// → Issues can change anytime (new issues, updates, deletes)
-
-// So we FORCE Next.js to:
-//  NOT cache the page
-//  NOT use static generation
-//  ALWAYS fetch fresh data from the database
-
-// =====================================================
-//  In simple words:
-// =====================================================
-// "Always show the latest data from the database,
-//  don't cache this page."
-
-// =====================================================
-// ⚡ Alternative (for understanding)
-// =====================================================
-// dynamic = "auto"          → Next.js decides (default)
-// dynamic = "force-static"  → Always cached/static
-// dynamic = "force-dynamic" → Always fresh (no caching)
 
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STATUS FILTERING LOGIC
+// Props
 // ─────────────────────────────────────────────────────────────────────────────
-// The filter UI passes status as a URL query param e.g. /Issues?status=OPEN
-// searchParams reads that value from the URL
-//
-// Three possible cases:
-// 1. status = "OPEN" / "IN_PROGRESS" / "CLOSED"
-//    → valid enum value → passed directly to Prisma → filtered results returned
-//
-// 2. status = "ALL"
-//    → not a valid Prisma enum value → would throw PrismaClientValidationError
-//    → validatedStatus converts it to undefined → Prisma returns all issues
-//
-// 3. status = undefined (no query param in URL)
-//    → Object.values(Status).includes(undefined) = false
-//    → validatedStatus = undefined → Prisma returns all issues
-//
-// Object.values(Status) → ["OPEN", "IN_PROGRESS", "CLOSED"]
-// .includes(status)     → checks if the URL value is a real enum member
+// searchParams is a Promise in Next.js 15+ — must be awaited before use.
+// We use the issueQuery interface imported from IssueTable so both files
+// share one definition of what the URL params look like.
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-// ask why we set query as OBJECT , not string
-// => something like the filter gets replaced by the column filter
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COLUMNS ARRAY — { label, value, className? }
-// ─────────────────────────────────────────────────────────────────────────────
-// columns is an array of objects that drives BOTH the table headers AND the sorting
-// instead of hardcoding three separate <Table.ColumnHeaderCell> blocks,
-// we define the data once and map over it — cleaner and easier to maintain
-//
-// each object has three properties:
-//
-// label  → the TEXT shown to the user in the column header
-//          e.g. "Issue", "Status", "CreatedAt"
-//          this is purely for display — has no connection to the database
-//
-// value  → the ACTUAL field name on the Issue model in the database
-//          typed as keyof Issue — so TypeScript only allows real Issue fields
-//          e.g. "title", "status", "createdAt"
-//          this is used in TWO ways:
-//          1. as the orderBy query param in the URL when the column is clicked
-//             → clicking "Status" header → URL becomes ?orderBy=status
-//             → Prisma uses this to sort results by that field
-//          2. as the key prop in .map() to uniquely identify each column
-//
-// className? → optional Tailwind classes for responsive visibility
-//              "hidden md:table-cell" → hide on mobile, show on desktop
-//              the first column (Issue/title) has no className
-//              so it always shows on all screen sizes
-//
-// keyof Issue — WHY THIS TYPE?
-// keyof Issue is a TypeScript utility that produces a union of all
-// field names on the Prisma Issue model:
-// "id" | "title" | "description" | "createdAt" | "updatedAt" | "status" |
-// "userId" | "assignedToUserId"
-// this means if you type value: "titlee" (typo), TypeScript throws an error
-// it guarantees the value is always a real database field — not a random string
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// SORTING FLOW — HOW THE ARROW AND ORDERBY WORK TOGETHER
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 1 — user clicks a column header link
-//           <NextLink href={{ query: { status, orderBy: column.value } }}>
-//           → URL becomes e.g. /Issues?status=OPEN&orderBy=status
-//           status is preserved so the filter doesn't reset when sorting
-//
-// Step 2 — page re-renders, searchParams reads orderBy from the URL
-//           const { status, orderBy } = await searchParams;
-//
-// Step 3 — ArrowUpIcon appears on the active column
-//           {column.value === orderBy && <ArrowUpIcon className="inline" />}
-//           → checks if THIS column's value matches the orderBy in the URL
-//           → only the active sort column shows the arrow
-//
-// Step 4 — (to be implemented) Prisma uses orderBy to sort results
-//           prisma.issue.findMany({ orderBy: { [orderBy]: "asc" } })
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// WHY QUERY IS AN OBJECT NOT A STRING
-// ─────────────────────────────────────────────────────────────────────────────
-// <NextLink href={{ query: { status, orderBy: column.value } }}>
-//
-// query must be an OBJECT because we need to preserve MULTIPLE params at once
-// if we used a plain string like href={`?orderBy=${column.value}`}:
-//   → clicking a column when status=OPEN is active would produce ?orderBy=title
-//   → the status filter would be LOST from the URL entirely
-//
-// using an object:
-//   → { status: "OPEN", orderBy: "title" } → ?status=OPEN&orderBy=title
-//   → both params are preserved together in the URL
-//   → Next.js automatically serializes the object into a query string
-// ─────────────────────────────────────────────────────────────────────────────
+
+
+  // ── STEP 1: AWAIT searchParams ─────────────────────────────────────────────
+  // Must await before accessing any property (Next.js 15 requirement).
+  // We await ONCE and store in `params` — then use params everywhere below
+  // instead of calling await searchParams multiple times.
+
+
+
+
+
+
+
+  // ── STEP 2: VALIDATE STATUS ────────────────────────────────────────────────
+  // The URL status could be anything a user types manually.
+  // Object.values(Status) = ["OPEN", "IN_PROGRESS", "CLOSED"]
+  // If status matches a real enum value → use it in the Prisma query.
+  // If not (e.g. "ALL", "random", undefined) → use undefined → no filter applied.
+
+
+
+
+  
+  // ── STEP 3: VALIDATE ORDERBY ───────────────────────────────────────────────
+  // columnNames = ["title", "status", "createdAt"] (from IssueTable.tsx)
+  // If the URL's orderBy is one of these → build a Prisma orderBy object.
+  // If not → undefined → Prisma returns results in default insertion order.
+  //
+  // WHY a separate const and not directly inside the query?
+  // → Safety: prevents unknown field names reaching Prisma (would throw or crash)
+  // → Clarity: validation logic is readable and separate from the query
+
+
+
+
+
+
+  // ── STEP 4: PAGINATION MATH ────────────────────────────────────────────────
+  // page  → read from URL (?page=2), default to 1 if missing
+  // pagesize → how many issues to show per page (fixed constant)
+  // skip  → how many records to skip in Prisma (e.g. page 3 skips 20)
+  // take  → how many records to fetch (always pagesize)
+
+
+
+
+
+  // ── STEP 5: FETCH ISSUES (paginated, filtered, sorted) ────────────────────
+  // All three features work together in one Prisma query:
+  //   where    → status filter (undefined = no filter = all issues)
+  //   orderBy  → sort by column (undefined = no sort = insertion order)
+  //   skip     → skip records from previous pages
+  //   take     → return only this page's records
+
+
+
+
+
+
+
+  // ── STEP 6: COUNT TOTAL ISSUES ────────────────────────────────────────────
+  // Pagination needs to know the TOTAL number of matching issues
+  // (not just this page's slice) to calculate how many pages exist.
+  // Uses validatedStatus so the count matches the filter applied above.
