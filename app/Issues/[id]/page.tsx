@@ -68,6 +68,8 @@ const IssueDetailPage = async ({ params }: Props) => {
 
   if (!issue) notFound();
 
+  const isAdmin = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+
   return (
     <Grid columns={{ initial: "1", sm: "5" }} gap="5">
 
@@ -81,7 +83,7 @@ const IssueDetailPage = async ({ params }: Props) => {
             <AssigneeSelect issue={issue} />
             <StatusSelect issue={issue} />
             <EditIssueButton issueId={issue.id} />
-            <DeleteButton issueId={issue.id} />
+            {isAdmin && <DeleteButton issueId={issue.id} />}
           </Flex>
         </Box>
       )}

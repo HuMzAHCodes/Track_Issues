@@ -30,7 +30,7 @@ export default async function Home() {
           <IssueSummary {...issueCounts} />
           <IssueChart {...issueCounts} />
         </Flex>
-        <HeroSection />
+        <HeroSection {...issueCounts} />
       </Grid>
       <LatestIssues />
     </Flex>

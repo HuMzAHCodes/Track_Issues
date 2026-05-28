@@ -31,7 +31,7 @@ export default function RootLayout({
           {/* AssigneeSelect uses useQuery() — it needs this provider above it in the tree */}
           <QueryClientProvider>
 
-            <Theme accentColor="ruby" radius="large">
+            <Theme appearance="light" accentColor="ruby" radius="large">
               <div className="min-h-screen flex flex-col">
                 <NavBar />
                 <main className="p-6 flex-grow">

@@ -84,6 +84,12 @@ export async function DELETE(
   if (!session)
     return NextResponse.json({}, { status: 401 })
 
+  // Only Admin can delete issues
+  const isAdmin = session.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  if (!isAdmin) {
+    return NextResponse.json({ error: "Only Admin can delete issues" }, { status: 403 });
+  }
+
   // validate that id is actually a number before querying
   if (isNaN(issueId))
     return NextResponse.json({ error: "Invalid ID" }, { status: 400 });

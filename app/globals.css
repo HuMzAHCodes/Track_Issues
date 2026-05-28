@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @config "../tailwind.config.ts";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Custom variables and theme extending in Tailwind v4 */
 @theme {
   --color-cherry: #9a0002;
@@ -21,17 +23,6 @@
   --text-muted: #57534e;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0d0707;
-    --foreground: #efe6dd;
-    --card-bg: rgba(5, 3, 3, 0.6);
-    --card-border: rgba(255, 255, 255, 0.08);
-    --card-shadow: rgba(0, 0, 0, 0.4);
-    --navbar-bg: rgba(13, 7, 7, 0.65);
-    --text-muted: #a8a29e;
-  }
-}
 
 html, body {
   background-color: var(--background) !important;
