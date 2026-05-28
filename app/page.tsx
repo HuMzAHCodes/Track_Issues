@@ -38,6 +38,28 @@ export const dynamic = 'force-dynamic';
 
 
 
+
+export const metadata: Metadata = {
+  title: 'Issue Tracker - Dashboard',
+  description: 'View a summary of project issues',
+
+  // Open Graph — controls preview when shared on Facebook, LinkedIn, WhatsApp etc.
+  openGraph: {
+    title: 'Issue Tracker - Dashboard',
+    description: 'View a summary of project issues',
+  },
+
+  // Twitter Card — controls preview when shared on Twitter/X
+  twitter: {
+    card: 'summary',
+    title: 'Issue Tracker - Dashboard',
+    description: 'View a summary of project issues',
+  }
+};
+
+
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // WHAT THIS FILE DOES
 // ─────────────────────────────────────────────────────────────────────────────

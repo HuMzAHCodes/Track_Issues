@@ -6,6 +6,7 @@ import IssueActions from "./issueactions";
 import { Issue, Status } from "@prisma/client";
 import Pagination from "../components/Pagination";
 import IssueTable, { columnNames, issueQuery } from "./IssueTable";
+import { Metadata } from 'next';
 
 
 interface props {
@@ -81,6 +82,38 @@ export default IssuesPage;
 // Required because issues change frequently (create/edit/delete),
 // so cached/static HTML would show stale data.
 export const dynamic = "force-dynamic"
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// METADATA — STATIC (no dynamic data needed, title doesn't change per page)
+// ─────────────────────────────────────────────────────────────────────────────
+// Issues list page always has the same title regardless of filters or sorting
+// so we use a plain export const metadata instead of generateMetadata()
+// ─────────────────────────────────────────────────────────────────────────────
+export const metadata: Metadata = {
+  title: 'Issues | Issue Tracker',
+  description: 'Browse, filter and sort all project issues',
+
+  // Open Graph — preview card when this URL is shared on social media
+  openGraph: {
+    title: 'Issues | Issue Tracker',
+    description: 'Browse, filter and sort all project issues',
+  },
+
+  // Twitter Card — preview card when shared on Twitter/X
+  twitter: {
+    card: 'summary',
+    title: 'Issues | Issue Tracker',
+    description: 'Browse, filter and sort all project issues',
+  }
+}
+
+
+
+
+
+
 
 
 
