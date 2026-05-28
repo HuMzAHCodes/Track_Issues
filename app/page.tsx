@@ -1,6 +1,6 @@
 import prisma from '@/prisma/client';
 import IssueSummary from './IssueSummary';
-import LatestIssues from './LatestIssues';
+import HeroSection from './HeroSection';
 import IssueChart from './IssueChart';
 import { Flex, Grid } from '@radix-ui/themes';
 import { Metadata } from 'next';
@@ -28,7 +28,7 @@ export default async function Home() {
         <IssueSummary {...issueCounts} />
         <IssueChart {...issueCounts} />
       </Flex>
-      <LatestIssues />
+      <HeroSection />
     </Grid>
   );
 }
