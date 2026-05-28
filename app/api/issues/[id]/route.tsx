@@ -17,6 +17,14 @@ export async function PATCH(
   if (!session)
     return NextResponse.json({}, { status: 401 })
 
+  // Only Admin can change status or assignee
+  if (body.status !== undefined || body.assignedToUserId !== undefined) {
+    const isAdmin = session.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    if (!isAdmin) {
+      return NextResponse.json({ error: "Only Admin can change status or assignees" }, { status: 403 });
+    }
+  }
+
   const validation = PatchIssueSchema.safeParse(body);
   if (!validation.success)
     return NextResponse.json(validation.error.format(), { status: 400 });
@@ -38,25 +46,23 @@ export async function PATCH(
   if (!issue)
     return NextResponse.json({ error: "Invalid issue ID" }, { status: 404 });
 
-  const updatedIssue = await prisma.issue.update({
-  where: { id: issueId },
-  data: {
+  const updateData: any = {
     title: body.title,
     description: body.description,
+    status: body.status,
+  };
 
-      // ❌ ERROR: Prisma does not allow setting relation foreign keys directly
-      // like a plain field. `assignedToUserId` is a relation FK, so Prisma
-      // requires it to be updated through the `user` relation instead.
-      // assignedToUserId: body.assignedToUserId  <-- removed
-
-      // ✅ FIX: Use a nested relation update.
-      // - If an ID is provided, `connect` links the issue to that user.
-      // - If no ID is provided (unassigning), `disconnect` removes the link.
-      assignedToUser: body.assignedToUserId
+  // Only update assignment relation if it was explicitly provided in the request body
+  if (body.assignedToUserId !== undefined) {
+    updateData.assignedToUser = body.assignedToUserId
       ? { connect: { id: body.assignedToUserId } }
-      : { disconnect: true },
-  },
-});
+      : { disconnect: true };
+  }
+
+  const updatedIssue = await prisma.issue.update({
+    where: { id: issueId },
+    data: updateData,
+  });
 
   return NextResponse.json(updatedIssue);
 }

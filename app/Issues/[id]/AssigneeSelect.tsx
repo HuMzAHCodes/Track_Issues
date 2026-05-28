@@ -9,7 +9,11 @@ import Skeleton from 'react-loading-skeleton';
 import toast,{Toaster} from "react-hot-toast";
 
 
+import { useSession } from 'next-auth/react';
+
 const AssigneeSelect = ({issue}:{issue:Issue}) => {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   const { data: Users, error, isLoading } = useQuery<User[]>({
     queryKey: ["user"],
@@ -51,6 +55,7 @@ const AssigneeSelect = ({issue}:{issue:Issue}) => {
 return (
   <>
     <Select.Root
+      disabled={!isAdmin}
       defaultValue={issue.assignedToUserId || "none"}  // ✅ "none" instead of ""
       onValueChange={assignissue}>
 

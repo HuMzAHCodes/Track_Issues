@@ -10,6 +10,7 @@ import DeleteButton from './DeleteButton';
 import { getServerSession } from 'next-auth';
 import authOptions from '@/app/auth/authOptions';
 import AssigneeSelect from './AssigneeSelect';
+import StatusSelect from './StatusSelect';
 import { Metadata } from 'next';
 import { cache } from 'react';
 
@@ -78,6 +79,7 @@ const IssueDetailPage = async ({ params }: Props) => {
         <Box>
           <Flex direction="column" gap="4">
             <AssigneeSelect issue={issue} />
+            <StatusSelect issue={issue} />
             <EditIssueButton issueId={issue.id} />
             <DeleteButton issueId={issue.id} />
           </Flex>
