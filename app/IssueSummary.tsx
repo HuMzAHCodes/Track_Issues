@@ -1,7 +1,7 @@
 import { Status } from '@prisma/client';
-import { Card, Flex, Text } from '@radix-ui/themes';
 import Link from 'next/link';
 import React from 'react';
+import { FaCircleExclamation, FaSpinner, FaCircleCheck } from 'react-icons/fa6';
 
 interface Props {
   open: number;
@@ -14,101 +14,73 @@ const IssueSummary = ({ open, inProgress, closed }: Props) => {
     label: string;
     value: number;
     status: Status;
+    icon: React.ReactNode;
+    colorClass: string;
+    borderHoverClass: string;
   }[] = [
-    { label: 'Open Issues', value: open, status: 'OPEN' },
+    { 
+      label: 'Open Issues', 
+      value: open, 
+      status: 'OPEN',
+      icon: <FaCircleExclamation className="text-lg text-cherry animate-pulse" />,
+      colorClass: 'text-cherry bg-cherry/10 dark:bg-cherry/20',
+      borderHoverClass: 'hover:border-cherry/50 hover:shadow-cherry/10'
+    },
     {
-      label: 'In-progress Issues',
+      label: 'In Progress',
       value: inProgress,
       status: 'IN_PROGRESS',
+      icon: <FaSpinner className="text-lg text-amber-600 dark:text-amber-500 animate-spin" style={{ animationDuration: '3s' }} />,
+      colorClass: 'text-amber-600 bg-amber-500/10 dark:bg-amber-500/20',
+      borderHoverClass: 'hover:border-amber-500/50 hover:shadow-amber-500/10'
     },
-    { label: 'Closed Issues', value: closed, status: 'CLOSED' },
+    { 
+      label: 'Closed Issues', 
+      value: closed, 
+      status: 'CLOSED',
+      icon: <FaCircleCheck className="text-lg text-stone-500 dark:text-stone-400" />,
+      colorClass: 'text-stone-600 bg-stone-500/10 dark:bg-stone-500/20',
+      borderHoverClass: 'hover:border-stone-500/50 hover:shadow-stone-500/10'
+    },
   ];
 
   return (
-    <Flex gap="4">
+    <div className="grid grid-cols-3 gap-4 w-full">
       {containers.map((container) => (
-        <Card key={container.label}>
-          <Flex direction="column" gap="1">
-            <Link
-              className='text-sm font-medium'
-              href={`/Issues/?status=${container.status}`}
-            >
+        <Link
+          key={container.label}
+          href={`/Issues/?status=${container.status}`}
+          className={`glass-card p-5 flex flex-col justify-between h-32 cursor-pointer no-underline ${container.borderHoverClass}`}
+        >
+          <div className="flex justify-between items-start w-full">
+            <span className="text-xs uppercase tracking-wider font-semibold text-stone-500 dark:text-stone-400">
               {container.label}
-            </Link>
-            <Text size="5" className='font-bold'>{container.value}</Text>
-          </Flex>
-        </Card>
+            </span>
+            <div className={`p-2 rounded-xl flex items-center justify-center ${container.colorClass}`}>
+              {container.icon}
+            </div>
+          </div>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-3xl font-extrabold tracking-tight text-stone-900 dark:text-stone-50">
+              {container.value}
+            </span>
+            {container.status === 'IN_PROGRESS' && (
+              <span className="relative flex h-2 w-2 mb-1">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+            )}
+            {container.status === 'OPEN' && (
+              <span className="relative flex h-2 w-2 mb-1">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cherry opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-cherry"></span>
+              </span>
+            )}
+          </div>
+        </Link>
       ))}
-    </Flex>
+    </div>
   );
 };
 
 export default IssueSummary;
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// WHAT THIS COMPONENT DOES
-// ─────────────────────────────────────────────────────────────────────────────
-// IssueSummary is a dashboard widget that displays three stat cards —
-// one per issue status — showing how many issues exist in each category.
-// Each card is clickable and navigates to the issues list filtered by
-// that specific status.
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// HOW DATA FLOWS INTO THIS COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
-// This component is purely a display component — it does NOT fetch data itself.
-// The parent (dashboard page.tsx) fetches the counts from the database:
-//
-// const open       = await prisma.issue.count({ where: { status: "OPEN" } })
-// const inProgress = await prisma.issue.count({ where: { status: "IN_PROGRESS" } })
-// const closed     = await prisma.issue.count({ where: { status: "CLOSED" } })
-//
-// then passes them down as props:
-// <IssueSummary open={open} inProgress={inProgress} closed={closed} />
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// PROPS
-// ─────────────────────────────────────────────────────────────────────────────
-// open       → number — count of OPEN issues from the database
-// inProgress → number — count of IN_PROGRESS issues from the database
-// closed     → number — count of CLOSED issues from the database
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// CONTAINERS ARRAY — WHY AN ARRAY INSTEAD OF THREE HARDCODED CARDS
-// ─────────────────────────────────────────────────────────────────────────────
-// instead of writing three separate <Card> blocks manually, we define one
-// array of objects and .map() over it — this is cleaner and easier to maintain
-// adding a new status card only requires adding one object to the array
-//
-// each object has three properties:
-//
-// label  → string shown as the card heading e.g. "Open Issues"
-//          purely for display — not connected to the database
-//
-// value  → the actual count number displayed on the card
-//          comes directly from the props (open, inProgress, closed)
-//
-// status → typed as Status (Prisma enum from @prisma/client)
-//          Status can only be "OPEN" | "IN_PROGRESS" | "CLOSED"
-//          TypeScript enforces this — you cannot put a random string here
-//          used to build the filter URL for the Link
-//
-// ─────────────────────────────────────────────────────────────────────────────
-// CLICK-TO-FILTER BEHAVIOUR
-// ─────────────────────────────────────────────────────────────────────────────
-// each card label is wrapped in a Next.js Link:
-// href={`/Issues/?status=${container.status}`}
-//
-// clicking "Open Issues"       → navigates to /Issues/?status=OPEN
-// clicking "In-progress Issues"→ navigates to /Issues/?status=IN_PROGRESS
-// clicking "Closed Issues"     → navigates to /Issues/?status=CLOSED
-//
-// the IssuesPage reads this status query param from searchParams,
-// validates it against the Prisma Status enum, and passes it to
-// prisma.issue.findMany({ where: { status: validatedStatus } })
-// so the issues list immediately shows only issues of that status
-//
-// this creates a direct connection between the dashboard summary
-// and the filtered issues list — one click from count to details
-//

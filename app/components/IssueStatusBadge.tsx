@@ -1,60 +1,41 @@
 import { Status } from '@prisma/client'
-import { Badge } from '@radix-ui/themes'
 import React from 'react'
 
-
-
-
-interface props{
-    status:Status
+interface props {
+    status: Status
 }
-
-
 
 const statusMap: Record<
   Status, 
-  { label: string, color: 'red' | 'violet' | 'green' }> = {
-  OPEN: { label: 'Open', color: 'red' },
-  IN_PROGRESS: { label: 'In Progress', color: 'violet' },
-  CLOSED: { label: 'Closed', color: 'green' }
+  { label: string, bgClass: string, textClass: string, dotClass: string }> = {
+  OPEN: { 
+    label: 'Open', 
+    bgClass: 'bg-cherry/10 dark:bg-cherry/20 border border-cherry/20', 
+    textClass: 'text-cherry dark:text-cherry-glow font-bold',
+    dotClass: 'bg-cherry'
+  },
+  IN_PROGRESS: { 
+    label: 'In Progress', 
+    bgClass: 'bg-amber-500/10 dark:bg-amber-500/20 border border-amber-500/20', 
+    textClass: 'text-amber-700 dark:text-amber-400 font-bold',
+    dotClass: 'bg-amber-500 animate-pulse'
+  },
+  CLOSED: { 
+    label: 'Closed', 
+    bgClass: 'bg-stone-500/10 dark:bg-stone-500/20 border border-stone-500/20', 
+    textClass: 'text-stone-600 dark:text-stone-300 font-bold',
+    dotClass: 'bg-stone-500'
+  }
 };
 
-
-
-
-
 const IssueStatusBadge = ({ status }: props) => {
+  const config = statusMap[status];
   return (
-    <Badge color={statusMap[status].color}>
-      {statusMap[status].label}
-    </Badge>
+    <span className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold tracking-wide shadow-sm ${config.bgClass} ${config.textClass}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${config.dotClass}`} />
+      <span>{config.label}</span>
+    </span>
   )
 }
 
-export default IssueStatusBadge
-
-
-
-//statusMap is a lookup table that maps each Status enum value to its
-// corresponding display label and badge color.
-// Instead of writing if/else or switch statements every time we need
-// to display a status, we just do statusMap[status].label or statusMap[status].color
-//
-// Record<Status, {...}> means:
-// "this object must have a key for EVERY value of the Status enum"
-// So if we add a new status to the database, TypeScript will force us to handle it here too
-
-
-
-
-    // color is typed as a union of these 3 specific strings, NOT just "string"
-    // because Radix UI's Badge component only accepts these exact color values.
-    // If we used "string", TypeScript would allow any string like "purple" or "banana"
-    // which would cause a runtime error since Radix doesn't recognize them.
-    // This way TypeScript catches invalid colors at compile time, not at runtime.
-
-
-
-
-// in PRISMA , we don,t need to EXPLICITLY define the type of our model ( database ), here
-// it was "Status"
+export default IssueStatusBadge;
