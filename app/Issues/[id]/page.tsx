@@ -11,6 +11,7 @@ import { getServerSession } from 'next-auth';
 import authOptions from '@/app/auth/authOptions';
 import AssigneeSelect from './AssigneeSelect';
 import { Metadata } from 'next';
+import { cache } from 'react';
 
 
 interface Props {
@@ -18,43 +19,30 @@ interface Props {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// generateMetadata — DYNAMIC METADATA PER ISSUE
-// ─────────────────────────────────────────────────────────────────────────────
-// Next.js calls this function before rendering the page
-// it receives the same Props as the page component (params with the issue id)
-// we fetch the issue title from the database and use it to build
-// a unique title and description for each individual issue page
-//
-// this runs on the server — Prisma is available here
-// the result is injected into the <head> of the page automatically by Next.js
-// ─────────────────────────────────────────────────────────────────────────────
+
+const fetchIssue = cache((issueId: number) =>
+  prisma.issue.findUnique({ where: { id: issueId } })
+);
+
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
-  // await params — same Next.js 15 requirement as the page component below
+  // await params — Next.js 15 requirement
   const { id } = await params;
 
-  // fetch the issue — only need the title for metadata
-  const issue = await prisma.issue.findUnique({
-    where: { id: parseInt(id) }
-  });
+  // uses the cached fetch — if IssueDetailPage already called this,
+  // no new DB query is made — the cached result is returned instantly
+  const issue = await fetchIssue(parseInt(id));
 
   return {
-    // dynamic title — each issue gets its own unique browser tab title
-    // e.g. "Fix login bug | Issue Tracker"
     title: `${issue?.title} | Issue Tracker`,
-
-    // dynamic description — used by search engines and social previews
     description: `Details of issue: ${issue?.title}`,
 
-    // Open Graph — controls the preview card when this URL is shared
-    // on Facebook, LinkedIn, WhatsApp, Discord etc.
     openGraph: {
       title: `${issue?.title} | Issue Tracker`,
       description: `Details of issue: ${issue?.title}`,
     },
 
-    // Twitter Card — controls the preview card when shared on Twitter/X
     twitter: {
       card: 'summary',
       title: `${issue?.title} | Issue Tracker`,
@@ -73,9 +61,9 @@ const IssueDetailPage = async ({ params }: Props) => {
   const issueId = parseInt(id, 10);
   if (Number.isNaN(issueId)) notFound();
 
-  const issue = await prisma.issue.findUnique({
-    where: { id: issueId },
-  });
+  // uses the cached fetch — if generateMetadata already called this,
+  // no new DB query is made — same result returned from cache
+  const issue = await fetchIssue(issueId);
 
   if (!issue) notFound();
 
@@ -126,6 +114,70 @@ export default IssueDetailPage;
 // Next.js calls generateMetadata first, then renders the page component.
 // They share the same Props interface to avoid duplicating the type definition.
 // ─────────────────────────────────────────────────────────────────────────────
+
+
+
+
+
+
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// generateMetadata — DYNAMIC METADATA PER ISSUE
+// ─────────────────────────────────────────────────────────────────────────────
+// Next.js calls this function before rendering the page
+// it receives the same Props as the page component (params with the issue id)
+// we fetch the issue title from the database and use it to build
+// a unique title and description for each individual issue page
+//
+// this runs on the server — Prisma is available here
+// the result is injected into the <head> of the page automatically by Next.js
+
+
+
+
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// getServerSession(authOptions) — WHAT IT DOES
+// ─────────────────────────────────────────────────────────────────────────────
+// Runs on the server before this page is rendered (this is an async Server Component).
+// It reads the NextAuth session cookie from the request, validates it with authOptions,
+// and returns who is logged in — or null if nobody is signed in.
+// Unlike useSession() in client components, this runs once on the server with no loading flash.
+
+
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// session — WHAT IT IS
+// ─────────────────────────────────────────────────────────────────────────────
+// `session` holds the current user's login state from NextAuth (set at Google sign-in).
+// We use it in `{session && (...)}` so Edit and Delete only appear for logged-in users.
+// Delete has no separate page, so middleware cannot block that button — hiding it when
+// session is missing is the UI-side guard; the DELETE API still returns 401 without a session.
+
+
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WHY generateMetadata AND THE PAGE COMPONENT BOTH RECEIVE Props
+// ─────────────────────────────────────────────────────────────────────────────
+// Both functions need the issue id from the URL params to do their job.
+// generateMetadata uses it to fetch the title for the <head> metadata.
+// IssueDetailPage uses it to fetch the full issue for rendering the page body.
+// Next.js calls generateMetadata first, then renders the page component.
+// They share the same Props interface to avoid duplicating the type definition.
+
+
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
 // NOTE ON DOUBLE DATABASE FETCH
 // ─────────────────────────────────────────────────────────────────────────────
 // Both generateMetadata and IssueDetailPage call prisma.issue.findUnique()
@@ -133,6 +185,23 @@ export default IssueDetailPage;
 // This is acceptable for a tutorial project. In production you would use
 // React cache() to deduplicate the fetch so Prisma is only called once.
 // ─────────────────────────────────────────────────────────────────────────────
+
+
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// fetchIssue — CACHED DATABASE FETCH
+// ─────────────────────────────────────────────────────────────────────────────
+// cache() is a React function that memoizes the result of an async function
+// for the duration of a single server request.
+//
+// WITHOUT cache():
+// → generateMetadata() calls prisma.issue.findUnique() → 1 DB hit
+// → IssueDetailPage calls prisma.issue.findUnique() → 2nd DB hit (same data)
+// → total: 2 database queries for the exact same record
+//
+
 
 
 
