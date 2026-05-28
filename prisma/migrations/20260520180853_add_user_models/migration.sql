@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE `issue` ADD COLUMN `userId` VARCHAR(191) NULL;
+ALTER TABLE `Issue` ADD COLUMN `userId` VARCHAR(191) NULL;
 
 -- CreateTable
 CREATE TABLE `Account` (
