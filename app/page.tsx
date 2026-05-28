@@ -3,6 +3,7 @@ import Pagination from './components/Pagination'
 import LatestIssues from './LatestIssues'
 import prisma from '@/prisma/client'
 import IssueSummary from './IssueSummary'
+import IssueChart from './IssueChart'
 
 
 
@@ -28,7 +29,7 @@ export default async function Home() {
 
       {/* <LatestIssues/> */}
 
-      <IssueSummary open={open}  closed={closed} inProgress={inprogress}/>
+      <IssueChart open={open}  closed={closed} inProgress={inprogress}/>
     </div>
   )
 }
