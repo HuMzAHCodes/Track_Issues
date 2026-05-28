@@ -70,7 +70,7 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
 
 
   return (
-    <div className="w-1/2 space-y-3 border-2 border-black p-4">
+    <div className="glass-card max-w-xl w-full space-y-3 p-6">
 
       {/* Show error callout only if a server/API error occurred */}
       {error && (
