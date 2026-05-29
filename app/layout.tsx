@@ -32,12 +32,10 @@ export default function RootLayout({
           <QueryClientProvider>
 
             <Theme appearance="light" accentColor="ruby" radius="large">
-              <div className="min-h-screen flex flex-col">
-                <NavBar />
-                <main className="p-6 flex-grow">
-                  <Container>{children}</Container>
-                </main>
-              </div>
+              <NavBar />
+              <main className="p-6">
+                <Container>{children}</Container>
+              </main>
             </Theme>
 
           </QueryClientProvider>
