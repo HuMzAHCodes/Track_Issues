@@ -23,7 +23,10 @@ const HeroSection = ({ open, inProgress, closed }: Props) => {
   };
 
   return (
-    <div className="bg-cherry rounded-[24px] p-8 flex flex-col md:flex-row items-center justify-between h-[510px] shadow-2xl relative overflow-hidden group border border-cherry/20 text-white">
+    <div
+      className="animate-entrance bg-cherry rounded-[24px] p-8 flex flex-col md:flex-row items-center justify-between h-[510px] shadow-2xl relative overflow-hidden group border border-cherry/20 text-white"
+      style={{ ['--entrance-duration' as string]: '1200ms' }}
+    >
       
       {/* 🔮 Background Glow mesh */}
       <div className="absolute -right-20 -top-20 w-96 h-96 rounded-full bg-white/5 blur-3xl transition-all duration-700"></div>

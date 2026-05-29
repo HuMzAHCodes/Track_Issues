@@ -55,13 +55,53 @@ html, body {
 }
 
 .glass-nav {
-  background: var(--navbar-bg) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--card-border) !important;
+  border: 1px solid var(--card-border) !important;
+  transition: background 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.glass-nav-top {
+  background: rgba(239, 230, 221, 0.45) !important;
+  box-shadow: 0 4px 16px 0 rgba(13, 7, 7, 0.04) !important;
+}
+
+.glass-nav-scrolled {
+  background: rgba(239, 230, 221, 0.88) !important;
+  box-shadow: 0 8px 32px 0 rgba(13, 7, 7, 0.1) !important;
+  border-color: rgba(154, 0, 2, 0.22) !important;
 }
 
 /* Animations */
+@keyframes entrance-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-entrance {
+  opacity: 0;
+  animation: entrance-fade-up var(--entrance-duration, 1.2s) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @keyframes pulse-glow {
   0%, 100% {
     transform: scale(1);

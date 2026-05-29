@@ -3,6 +3,7 @@ import IssueSummary from './IssueSummary';
 import HeroSection from './HeroSection';
 import IssueChart from './IssueChart';
 import LatestIssues from './LatestIssues';
+import ScrollReveal from './components/ScrollReveal';
 import { Flex, Grid } from '@radix-ui/themes';
 import { Metadata } from 'next';
 
@@ -32,7 +33,9 @@ export default async function Home() {
         </Flex>
         <HeroSection {...issueCounts} />
       </Grid>
-      <LatestIssues />
+      <ScrollReveal>
+        <LatestIssues />
+      </ScrollReveal>
     </Flex>
   );
 }

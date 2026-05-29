@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { FaBug } from "react-icons/fa6";
 import { usePathname } from "next/navigation";
@@ -10,8 +10,25 @@ import { Avatar, DropdownMenu, Text } from "@radix-ui/themes";
 import { Skeleton } from "@/app/components";
 
 const NavBar = () => {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 24);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <nav className="glass-nav sticky top-4 z-50 rounded-2xl mx-6 my-4 shadow-lg px-6 h-16 flex items-center">
+    <nav
+      className={classNames(
+        "glass-nav sticky top-4 z-50 rounded-2xl mx-6 my-4 px-6 h-16 flex items-center",
+        scrolled ? "glass-nav-scrolled" : "glass-nav-top"
+      )}
+    >
       <div className="w-full flex justify-between items-center">
 
         {/* ── LEFT SECTION — logo + nav links ── */}

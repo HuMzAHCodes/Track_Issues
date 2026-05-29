@@ -18,6 +18,8 @@ interface Props {
   closed: number;
 }
 
+const ENTRANCE_DURATION_MS = 1200;
+
 const IssueChart = ({ open, inProgress, closed }: Props) => {
   const data = [
     { label: 'Open', value: open },
@@ -26,7 +28,10 @@ const IssueChart = ({ open, inProgress, closed }: Props) => {
   ];
 
   return (
-    <div className="glass-card p-6 shadow-xl w-full h-[350px]">
+    <div
+      className="animate-entrance glass-card p-6 shadow-xl w-full h-[350px]"
+      style={{ ['--entrance-duration' as string]: `${ENTRANCE_DURATION_MS}ms` }}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <defs>
@@ -75,6 +80,8 @@ const IssueChart = ({ open, inProgress, closed }: Props) => {
             dataKey="value"
             barSize={60}
             radius={[12, 12, 0, 0]}
+            animationDuration={ENTRANCE_DURATION_MS}
+            animationEasing="ease-out"
           >
             {data.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={`url(#color-${entry.label.replace(/\s+/g, '')})`} />
