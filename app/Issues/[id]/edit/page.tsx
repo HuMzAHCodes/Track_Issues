@@ -1,7 +1,9 @@
 import React from 'react'
 import IssueForm from '../../_components/IssueForm'
+import HeroSection from '@/app/HeroSection'
 import prisma from '@/prisma/client';
 import { notFound } from 'next/navigation';
+import { Grid } from '@radix-ui/themes';
 
 
 // In Next.js 15, params is now a Promise — must be typed as Promise<{...}>
@@ -50,11 +52,19 @@ const EditIssuePage = async ({ params }: props) => {
   // If no issue was found with that id, redirect to the built-in Next.js 404 page
   if (!issue) notFound()
 
+  const [open, inProgress, closed] = await Promise.all([
+    prisma.issue.count({ where: { status: 'OPEN' } }),
+    prisma.issue.count({ where: { status: 'IN_PROGRESS' } }),
+    prisma.issue.count({ where: { status: 'CLOSED' } }),
+  ])
 
-  // Pass the fetched issue to IssueForm so it can pre-populate the fields for editing
-  // IssueForm is a shared component used for both creating and editing issues
+  const issueCounts = { open, inProgress, closed }
+
   return (
-    <IssueForm issue={issue} />
+    <Grid columns={{ initial: '1', md: '2' }} gap="5" align="start" width="100%">
+      <IssueForm issue={issue} />
+      <HeroSection {...issueCounts} />
+    </Grid>
   )
 }
 
