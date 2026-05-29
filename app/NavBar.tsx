@@ -52,7 +52,7 @@ const NavBar = () => {
              bg-stone-900/50
           */
 
-          bg-white/25
+          bg-white/10
 
           fixed top-4 inset-x-6 z-50
           rounded-2xl px-6 h-16
