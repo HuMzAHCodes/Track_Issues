@@ -62,14 +62,14 @@ html, body {
 }
 
 .glass-nav-top {
-  background: rgba(239, 230, 221, 0.45) !important;
-  box-shadow: 0 4px 16px 0 rgba(13, 7, 7, 0.04) !important;
+  background: rgba(239, 230, 221, 0.55) !important;
+  box-shadow: 0 4px 20px 0 rgba(13, 7, 7, 0.06) !important;
 }
 
 .glass-nav-scrolled {
-  background: rgba(239, 230, 221, 0.88) !important;
-  box-shadow: 0 8px 32px 0 rgba(13, 7, 7, 0.1) !important;
-  border-color: rgba(154, 0, 2, 0.22) !important;
+  background: rgba(239, 230, 221, 0.94) !important;
+  box-shadow: 0 8px 32px 0 rgba(13, 7, 7, 0.12) !important;
+  border-color: rgba(154, 0, 2, 0.25) !important;
 }
 
 /* Animations */

@@ -14,7 +14,7 @@ const NavBar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 24);
+      setScrolled(window.scrollY > 20);
     };
 
     handleScroll();
@@ -23,12 +23,16 @@ const NavBar = () => {
   }, []);
 
   return (
-    <nav
-      className={classNames(
-        "glass-nav sticky top-4 z-50 rounded-2xl mx-6 my-4 px-6 h-16 flex items-center",
-        scrolled ? "glass-nav-scrolled" : "glass-nav-top"
-      )}
-    >
+    <>
+      {/* Spacer keeps page content from sliding under the fixed navbar */}
+      <div aria-hidden className="h-24 shrink-0" />
+
+      <nav
+        className={classNames(
+          "glass-nav fixed top-4 inset-x-6 z-50 rounded-2xl px-6 h-16 flex items-center",
+          scrolled ? "glass-nav-scrolled" : "glass-nav-top"
+        )}
+      >
       <div className="w-full flex justify-between items-center">
 
         {/* ── LEFT SECTION — logo + nav links ── */}
@@ -45,6 +49,7 @@ const NavBar = () => {
 
       </div>
     </nav>
+    </>
   );
 };
 
